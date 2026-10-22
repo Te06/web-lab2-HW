@@ -34,17 +34,29 @@ export function FlashSaleItem({ item, onBuy, onCheckout }: Props) {
         <div>
           {/* Nút bấm thay đổi theo State */}
           {item.state === 'AVAILABLE' && (
-            <button onClick={() => onBuy(item.id)} style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#0000cc', color: 'white', border: 'none', borderRadius: '4px' }}>
+            <button 
+              onClick={() => onBuy(item.id)} 
+              aria-label={`Mua ${item.name}`} // Đã thêm Aria-label
+              style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#0000cc', color: 'white', border: 'none', borderRadius: '4px' }}
+            >
               Mua ngay
             </button>
           )}
           {item.state === 'LOCKED' && (
-            <button onClick={() => onCheckout(item.id)} style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#ff9800', color: 'white', border: 'none', borderRadius: '4px' }}>
+            <button 
+              onClick={() => onCheckout(item.id)} 
+              aria-label={`Thanh toán cho ${item.name}`} // Đã thêm Aria-label
+              style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#ff9800', color: 'white', border: 'none', borderRadius: '4px' }}
+            >
               Thanh toán
             </button>
           )}
           {item.state === 'SOLD' && (
-            <button disabled style={{ padding: '8px 16px', backgroundColor: '#ccc', color: '#666', border: 'none', borderRadius: '4px' }}>
+            <button 
+              disabled 
+              aria-label={`${item.name} đã hết hàng`} // Đã thêm Aria-label
+              style={{ padding: '8px 16px', backgroundColor: '#ccc', color: '#666', border: 'none', borderRadius: '4px' }}
+            >
               Hết hàng
             </button>
           )}

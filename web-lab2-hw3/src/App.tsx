@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { InventoryFSM } from './inventory-fsm';
 import type { FlashSaleItem as ItemType } from './inventory-fsm';
 import { useAntiDriftTimer } from './use-anti-drift-timer';
@@ -17,20 +17,13 @@ const INITIAL_ITEMS: ItemType[] = [
 function App() {
   const [items, setItems] = useState<ItemType[]>(INITIAL_ITEMS);
   const { formatted, remaining } = useAntiDriftTimer(SALE_END_TIME);
-  
-  // Ref để lưu state mới nhất mà không làm restart vòng lặp tick
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
 
   // Vòng lặp kiểm tra hết hạn Lock (Heartbeat)
   useEffect(() => {
     let rafId: number;
     const checkLocks = () => {
       setItems((prevItems) => {
-        // Quét qua từng món, nếu món nào quá 5s chưa thanh toán -> Trả về AVAILABLE
         const newItems = prevItems.map(InventoryFSM.checkExpiry);
-        
-        // Chỉ update state nếu có sự thay đổi để tránh re-render vô ích
         const hasChanged = newItems.some((item, i) => item.state !== prevItems[i].state);
         return hasChanged ? newItems : prevItems;
       });
@@ -53,7 +46,11 @@ function App() {
     <main style={{ padding: '2rem', fontFamily: 'monospace', maxWidth: '800px', margin: '0 auto', color: '#111' }}>
       <header style={{ textAlign: 'center', marginBottom: '2rem' }}>
         <h1>🔥 Flash Sale 11.11</h1>
-        <div style={{ fontSize: '2rem', color: '#cc0000', fontWeight: 'bold' }}>
+        <div 
+          style={{ fontSize: '2rem', color: '#cc0000', fontWeight: 'bold' }}
+          aria-live="polite" 
+          aria-label={`Thời gian kết thúc còn lại: ${formatted}`}
+        >
           {remaining > 0 ? `Kết thúc sau: ${formatted}` : 'Đã kết thúc!'}
         </div>
       </header>
