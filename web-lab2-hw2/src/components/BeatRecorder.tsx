@@ -3,7 +3,7 @@ import { AudioEngine } from '../audio-engine';
 
 interface BeatEvent {
   key: string;
-  time: number; // Timestamp tính bằng ms
+  time: number;
 }
 
 export function BeatRecorder({ engine }: { engine: AudioEngine }) {
@@ -13,9 +13,8 @@ export function BeatRecorder({ engine }: { engine: AudioEngine }) {
   
   const startTimeRef = useRef<number>(0);
 
-  // Hàm phát tiếng trống (giả lập bằng tần số)
-  const playDrumSound = () => {
-    // Tạo một tiếng "bụp" bằng Oscillator (bộ tạo dao động)
+  // Sửa lại để mỗi phím ra 1 âm thanh khác nhau
+  const playDrumSound = (key: string) => {
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
@@ -23,29 +22,38 @@ export function BeatRecorder({ engine }: { engine: AudioEngine }) {
     osc.connect(gain);
     gain.connect(ctx.destination);
     
-    // Tần số giảm dần tạo tiếng trống
-    osc.frequency.setValueAtTime(150, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    let startFreq = 150;
+    let duration = 0.5;
+
+    switch (key) {
+      case 'A': startFreq = 150; duration = 0.4; break; // Kick
+      case 'S': startFreq = 250; duration = 0.2; break; // Snare
+      case 'D': startFreq = 800; duration = 0.05; break; // Hi-hat
+      case 'F': startFreq = 400; duration = 0.3; break; // Tom
+      default: startFreq = 150; duration = 0.3;
+    }
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
     
     gain.gain.setValueAtTime(1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
     
     osc.start();
-    osc.stop(ctx.currentTime + 0.5);
+    osc.stop(ctx.currentTime + duration);
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Chỉ ghi nhận các phím chữ cái
       if (e.key.length === 1 && e.key !== ' ') {
-        playDrumSound(); // Đánh trống ngay lập tức
+        const upperKey = e.key.toUpperCase();
+        playDrumSound(upperKey);
         
         if (isRecording) {
-          // Tính thời gian từ lúc bắt đầu record đến lúc bấm phím
           const now = performance.now();
           const relativeTime = now - startTimeRef.current;
-          
-          setEvents((prev) => [...prev, { key: e.key.toUpperCase(), time: relativeTime }]);
+          setEvents((prev) => [...prev, { key: upperKey, time: relativeTime }]);
         }
       }
     };
@@ -69,29 +77,28 @@ export function BeatRecorder({ engine }: { engine: AudioEngine }) {
     setIsPlaying(true);
 
     events.forEach((event) => {
-      // Dùng setTimeout để phát lại đúng thời điểm đã ghi
       setTimeout(() => {
-        playDrumSound();
+        playDrumSound(event.key);
       }, event.time);
     });
 
-    // Kết thúc sau khi phát xong event cuối cùng
     const lastEventTime = events[events.length - 1].time;
     setTimeout(() => setIsPlaying(false), lastEventTime + 500);
   };
 
   return (
     <div style={{ border: '2px solid #333', padding: '1rem', marginTop: '2rem', backgroundColor: '#eef' }}>
-      <h3>FIFO Beat Recorder</h3>
+      <h2>FIFO Beat Recorder</h2>
       <p>Bấm các phím chữ cái (A, S, D, F...) để đánh trống.</p>
       
       <div style={{ display: 'flex', gap: '10px', marginBottom: '1rem' }}>
         {!isRecording ? (
-          <button onClick={startRecording} disabled={isPlaying} style={{ padding: '10px', backgroundColor: 'red', color: 'white' }}>
+          <button onClick={startRecording} disabled={isPlaying} style={{ padding: '10px', backgroundColor: '#cc0000', color: 'white' }}>
             🔴 Bắt đầu Ghi (Record)
           </button>
         ) : (
-          <button onClick={stopRecording} style={{ padding: '10px', backgroundColor: 'gray', color: 'white' }}>
+          // Đã sửa màu gray thành #555 (xám đậm) để đủ độ tương phản
+          <button onClick={stopRecording} style={{ padding: '10px', backgroundColor: '#555555', color: 'white' }}>
             ⏹ Dừng Ghi
           </button>
         )}
@@ -106,7 +113,8 @@ export function BeatRecorder({ engine }: { engine: AudioEngine }) {
         <ul style={{ listStyleType: 'none', padding: 0 }}>
           {events.map((ev, index) => (
             <li key={index} style={{ borderBottom: '1px solid #ccc', padding: '4px 0' }}>
-              Phím <strong style={{ color: 'blue' }}>{ev.key}</strong> - tại giây thứ <strong>{(ev.time / 1000).toFixed(2)}s</strong>
+              {/* Đã sửa màu blue thành #0000cc cho đậm hơn */}
+              Phím <strong style={{ color: '#0000cc' }}>{ev.key}</strong> - tại giây thứ <strong>{(ev.time / 1000).toFixed(2)}s</strong>
             </li>
           ))}
         </ul>
