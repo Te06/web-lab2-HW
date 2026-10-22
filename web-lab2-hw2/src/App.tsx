@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AudioTaskQueue } from './audio-queue-controller';
 import { AudioEngine } from './audio-engine';
 import { Visualizer } from './components/Visualizer';
+import { BeatRecorder } from './components/BeatRecorder'; // Import BeatRecorder ở đây
 
 const queue = new AudioTaskQueue();
 const engine = new AudioEngine();
@@ -11,7 +12,7 @@ interface TrackInfo {
   name: string;
   url: string;
   status: 'pending' | 'loading' | 'success' | 'error';
-  buffer?: AudioBuffer; // Lưu trữ dữ liệu âm thanh sau khi decode
+  buffer?: AudioBuffer;
 }
 
 function App() {
@@ -40,7 +41,6 @@ function App() {
       
       try {
         const buffer = await queue.enqueue(track.url);
-        // Cập nhật thành công VÀ lưu buffer
         setTracks((prev) => prev.map(t => t.id === track.id ? { ...t, status: 'success', buffer } : t));
       } catch (err) {
         setTracks((prev) => prev.map(t => t.id === track.id ? { ...t, status: 'error' } : t));
@@ -84,7 +84,6 @@ function App() {
                     {track.status === 'success' && '✅ Xong'}
                     {track.status === 'error' && '❌ Hủy/Lỗi'}
                   </span>
-                  {/* Nút Play chỉ hiện khi tải xong */}
                   {track.status === 'success' && track.buffer && (
                     <button 
                       onClick={() => engine.play(track.buffer!)} 
@@ -99,12 +98,15 @@ function App() {
           </div>
         </div>
 
-        {/* Vùng Visualizer */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h3>Frequency Visualizer</h3>
           <Visualizer analyser={engine.analyser} />
         </div>
       </div>
+
+      {/* 🔥 GỌI BEAT RECORDER Ở ĐÂY NÀY 🔥 */}
+      <BeatRecorder engine={engine} />
+
     </main>
   );
 }
