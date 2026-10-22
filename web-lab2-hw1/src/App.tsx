@@ -20,10 +20,19 @@ const data: User[] = [
 ];
 
 function App() {
+  const handleRowSelect = (user: User) => {
+    alert(`Bạn đã chọn (Enter/Space): ${user.name}`);
+  };
+
   return (
     <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>HW1: Enterprise Data-Grid</h1>
-      <DataGrid data={data} columns={columns} ariaLabel="Bảng danh sách người dùng" />
+      <DataGrid 
+        data={data} 
+        columns={columns} 
+        ariaLabel="Bảng danh sách người dùng" 
+        onRowSelect={handleRowSelect} // Truyền hàm này vào
+      />
     </main>
   );
 }
